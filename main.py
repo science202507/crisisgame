@@ -93,10 +93,10 @@ def main(page: ft.Page):
             log_column # expand=True가 적용된 롤스크린 로그
         ], expand=True),
         expand=True, 
-        padding=ft.Padding(30, 30, 10, 30), # 우측 패딩을 10으로 줄여 스크롤바를 바깥으로 밀어냄
+        padding=ft.padding.only(left=30, top=30, right=10, bottom=30), # 우측 패딩을 10으로 줄여 스크롤바를 바깥으로 밀어냄
         bgcolor="#F8F9FA", 
         border_radius=30,
-        border=ft.Border.all(2, "#DFE4EA")
+        border=ft.border.all(2, "#DFE4EA")
     )
 
     def write_log(msg, color="#2D3436", bold=False, size=16):
@@ -228,7 +228,7 @@ def main(page: ft.Page):
             ft.Container(
                 content=ft.Text(f"{opt['name']}\n+{opt['gp']}GP", color="white", weight="bold", size=18, text_align=ft.TextAlign.CENTER),
                 bgcolor=opt['color'], padding=20, border_radius=15, on_click=handle_choice, data=k, expand=True,
-                alignment=ft.Alignment(0, 0)
+                alignment=ft.alignment.center
             ) for k, opt in CHOICE_OPTIONS.items()
         ],
         spacing=15
@@ -242,4 +242,4 @@ def main(page: ft.Page):
     start_round()
 
 if __name__ == "__main__":
-    ft.run(main)
+    ft.app(main)
