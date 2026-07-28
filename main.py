@@ -242,4 +242,4 @@ def main(page: ft.Page):
     start_round()
 
 if __name__ == "__main__":
-    ft.run(main)
+    ft.app(main)
