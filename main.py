@@ -1,5 +1,6 @@
 import flet as ft
 import random
+import threading
 
 # --- [1. 파일 규칙 및 수치 완벽 이식] ---
 INITIAL_TEMP = 15.0
@@ -40,10 +41,11 @@ def main(page: ft.Page):
         }
 
     init_game_data()
+    choice_lock = threading.Lock()  # 버튼 연타 시 라운드 중복 처리 방지
 
     # UI 컴포넌트 선언
     temp_display = ft.Text(f"{st['temp']:.2f}°C", size=50, weight="bold", color="#2D3436")
-    round_info = ft.Text(f"ROUND {st['round']} / 7", size=24, weight="bold", color="#2980B9")
+    round_info = ft.Text(f"ROUND {st['round']} / {TOTAL_ROUNDS}", size=24, weight="bold", color="#2980B9")
     gp_info = ft.Text(f"내 자산: {st['nations']['대한민국']['gp']} GP", size=22, weight="bold")
     nation_list_ui = ft.Column(spacing=10, horizontal_alignment=ft.CrossAxisAlignment.CENTER)
     
@@ -105,7 +107,7 @@ def main(page: ft.Page):
 
     def update_ui():
         temp_display.value = f"{st['temp']:.2f}°C"
-        round_info.value = f"ROUND {st['round']} / 7"
+        round_info.value = f"ROUND {st['round']} / {TOTAL_ROUNDS}"
         gp_info.value = f"내 자산: {st['nations']['대한민국']['gp']} GP"
         
         if st['temp'] >= 19.0: 
@@ -143,6 +145,13 @@ def main(page: ft.Page):
         update_ui()
 
     def handle_choice(e):
+        if not choice_lock.acquire(blocking=False): return
+        try:
+            process_choice(e)
+        finally:
+            choice_lock.release()
+
+    def process_choice(e):
         if st['is_game_over']: return
         player_choice = e.control.data
         st['actual']['대한민국'] = player_choice
@@ -180,7 +189,7 @@ def main(page: ft.Page):
         if st['actual'].get('미국') == 3: change -= 0.1
         if st['actual'].get('스웨덴') == 3: change -= 0.1
         
-        st['temp'] += change
+        st['temp'] = round(st['temp'] + change, 2)  # 부동소수점 오차 누적 방지
         write_log(f"🌡️ 온도 변화: {change:+.2f}°C", color="#E74C3C" if change > 0 else "#27AE60")
         update_ui()
 
@@ -200,17 +209,21 @@ def main(page: ft.Page):
         
         if success:
             write_log(f"🕊️ 인류 생존 성공! 최종 온도: {st['temp']:.2f}°C", color="#27AE60", bold=True, size=18)
-            bonus_pool = int((20.0 - st['temp']) * 60)
+            bonus_pool = int((GOAL_TEMP - st['temp']) * 60)
             total_env = sum(n['env_count'] for n in st['nations'].values())
             if total_env > 0:
                 write_log(f"\n🎁 환경 기여 보너스 분배 (총액: {bonus_pool} GP)", bold=True)
                 for name, data in st['nations'].items():
                     bonus = int((data['env_count'] / total_env) * bonus_pool)
                     data['gp'] += bonus
-                    if bonus > 0: write_log(f"  - {name}: +{bonus} GP 獲得")
+                    if bonus > 0: write_log(f"  - {name}: +{bonus} GP 획득")
 
-            winner = max(st['nations'], key=lambda x: st['nations'][x]['gp'])
-            write_log(f"\n🏆 최종 우승 국가: [{winner}]", color="#F39C12", size=26, bold=True)
+            top_gp = max(n['gp'] for n in st['nations'].values())
+            winners = [name for name, data in st['nations'].items() if data['gp'] == top_gp]
+            if len(winners) == 1:
+                write_log(f"\n🏆 최종 우승 국가: [{winners[0]}]", color="#F39C12", size=26, bold=True)
+            else:
+                write_log(f"\n🏆 공동 우승 국가: [{', '.join(winners)}]", color="#F39C12", size=26, bold=True)
         else:
             write_log(f"🌋 임계점 도달! 인류가 멸망했습니다.", color="#E74C3C", bold=True, size=18)
             write_log(f"최종 온도: {st['temp']:.2f}°C", color="#E74C3C")
