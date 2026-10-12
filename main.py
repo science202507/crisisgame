@@ -14,8 +14,8 @@ CHOICE_OPTIONS = {
 
 def main(page: ft.Page):
     page.title = "Climate Dilemma: Master Edition"
-    page.window_width = 1100
-    page.window_height = 850
+    page.window.width = 1100
+    page.window.height = 850
     page.bgcolor = "#FFFFFF"
     page.padding = 20
     page.theme_mode = ft.ThemeMode.LIGHT
@@ -44,9 +44,9 @@ def main(page: ft.Page):
     choice_lock = threading.Lock()  # 버튼 연타 시 라운드 중복 처리 방지
 
     # UI 컴포넌트 선언
-    temp_display = ft.Text(f"{st['temp']:.2f}°C", size=50, weight="bold", color="#2D3436")
-    round_info = ft.Text(f"ROUND {st['round']} / {TOTAL_ROUNDS}", size=24, weight="bold", color="#2980B9")
-    gp_info = ft.Text(f"내 자산: {st['nations']['대한민국']['gp']} GP", size=22, weight="bold")
+    temp_display = ft.Text(f"{st['temp']:.2f}°C", size=50, weight=ft.FontWeight.BOLD, color="#2D3436")
+    round_info = ft.Text(f"ROUND {st['round']} / {TOTAL_ROUNDS}", size=24, weight=ft.FontWeight.BOLD, color="#2980B9")
+    gp_info = ft.Text(f"내 자산: {st['nations']['대한민국']['gp']} GP", size=22, weight=ft.FontWeight.BOLD)
     nation_list_ui = ft.Column(spacing=10, horizontal_alignment=ft.CrossAxisAlignment.CENTER)
     
     # [롤스크린 핵심] 원본 설정 그대로 유지
@@ -64,7 +64,7 @@ def main(page: ft.Page):
 
     # 원본 하단 버튼에서 검증된 Container 방식으로 생성
     replay_btn = ft.Container(
-        content=ft.Text("🔄 Replay", size=14, weight="bold", color="#636E72"),
+        content=ft.Text("🔄 Replay", size=14, weight=ft.FontWeight.BOLD, color="#636E72"),
         on_click=reset_game,
         padding=5,
         border_radius=5
@@ -74,11 +74,11 @@ def main(page: ft.Page):
         content=ft.Column([
             round_info,
             ft.Divider(height=20, color="transparent"),
-            ft.Text("현재 지구 온도", size=18, weight="bold"),
+            ft.Text("현재 지구 온도", size=18, weight=ft.FontWeight.BOLD),
             temp_display,
             gp_info,
             ft.Divider(height=40),
-            ft.Text("🌍 국가별 약속", size=20, weight="bold"),
+            ft.Text("🌍 국가별 약속", size=20, weight=ft.FontWeight.BOLD),
             nation_list_ui
         ], horizontal_alignment=ft.CrossAxisAlignment.CENTER),
         padding=30, border_radius=30, bgcolor="#F1F2F6", width=380
@@ -88,21 +88,21 @@ def main(page: ft.Page):
     right_panel = ft.Container(
         content=ft.Column([
             ft.Row([
-                ft.Text("활동 로그", size=14, color="#636E72", weight="bold"),
+                ft.Text("활동 로그", size=14, color="#636E72", weight=ft.FontWeight.BOLD),
                 replay_btn
             ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
             ft.Divider(height=10),
             log_column # expand=True가 적용된 롤스크린 로그
         ], expand=True),
         expand=True, 
-        padding=ft.padding.only(left=30, top=30, right=10, bottom=30), # 우측 패딩을 10으로 줄여 스크롤바를 바깥으로 밀어냄
+        padding=ft.Padding.only(left=30, top=30, right=10, bottom=30), # 우측 패딩을 10으로 줄여 스크롤바를 바깥으로 밀어냄
         bgcolor="#F8F9FA", 
         border_radius=30,
-        border=ft.border.all(2, "#DFE4EA")
+        border=ft.Border.all(2, "#DFE4EA")
     )
 
     def write_log(msg, color="#2D3436", bold=False, size=16):
-        log_column.controls.append(ft.Text(msg, color=color, size=size, weight="bold" if bold else "normal"))
+        log_column.controls.append(ft.Text(msg, color=color, size=size, weight=ft.FontWeight.BOLD if bold else ft.FontWeight.NORMAL))
         page.update()
 
     def update_ui():
@@ -121,7 +121,7 @@ def main(page: ft.Page):
         for name, data in st['nations'].items():
             if name == '대한민국': continue
             nation_list_ui.controls.append(
-                ft.Text(f"{name}: {data['plan']}", size=16, weight="bold", color="#636E72")
+                ft.Text(f"{name}: {data['plan']}", size=16, weight=ft.FontWeight.BOLD, color="#636E72")
             )
         page.update()
 
@@ -239,9 +239,9 @@ def main(page: ft.Page):
     choice_buttons = ft.Row(
         controls=[
             ft.Container(
-                content=ft.Text(f"{opt['name']}\n+{opt['gp']}GP", color="white", weight="bold", size=18, text_align=ft.TextAlign.CENTER),
+                content=ft.Text(f"{opt['name']}\n+{opt['gp']}GP", color="white", weight=ft.FontWeight.BOLD, size=18, text_align=ft.TextAlign.CENTER),
                 bgcolor=opt['color'], padding=20, border_radius=15, on_click=handle_choice, data=k, expand=True,
-                alignment=ft.alignment.center
+                alignment=ft.Alignment.CENTER
             ) for k, opt in CHOICE_OPTIONS.items()
         ],
         spacing=15
@@ -255,4 +255,4 @@ def main(page: ft.Page):
     start_round()
 
 if __name__ == "__main__":
-    ft.app(main)
+    ft.run(main)
